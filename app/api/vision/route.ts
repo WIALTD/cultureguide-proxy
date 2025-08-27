@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "edge";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { imageBase64 } = body;
+    
+    if (!imageBase64) {
+      return NextResponse.json({ error: "imageBase64 required" }, { status: 400 });
+    }
+    
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "API key not configured" }, { status: 500 });
+    }
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are an art historian. Identify artwork in the image and respond with JSON only."
+          },
+          {
+            role: "user",
+            content: [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }]
+          }
+        ],
+        max_tokens: 1000
+      })
+    });
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    
+    return NextResponse.json({ content }, {
+      headers: { "Access-Control-Allow-Origin": "*" }
+    });
+    
+  } catch (error) {
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
