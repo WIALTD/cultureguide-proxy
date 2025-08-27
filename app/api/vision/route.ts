@@ -5,7 +5,7 @@ export const runtime = "edge";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { imageBase64 } = body;
+    const { imageBase64, systemPrompt } = body;
     
     if (!imageBase64) {
       return NextResponse.json({ error: "imageBase64 required" }, { status: 400 });
@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     if (!apiKey) {
       return NextResponse.json({ error: "API key not configured" }, { status: 500 });
     }
+    
+    // Use the systemPrompt from the client, or fallback to a basic one
+    const finalSystemPrompt = systemPrompt || "You are an art historian. Identify artwork in the image and respond with JSON only.";
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: "system",
-            content: "You are an art historian. Identify artwork in the image and respond with JSON only."
+            content: finalSystemPrompt
           },
           {
             role: "user",
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
+    console.error('Vision API proxy error:', error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
