@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = "edge";
 
 const MAX_PAYLOAD_SIZE = 1.7 * 1024 * 1024; // 1.7MB limit
 
@@ -40,7 +41,6 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -74,7 +74,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Return response through proxy
-    return NextResponse.json({ content });
+    return NextResponse.json({ content }, {
+      headers: { "Access-Control-Allow-Origin": "*" }
+    });
 
   } catch (error) {
     console.error('Chat API error:', error);
