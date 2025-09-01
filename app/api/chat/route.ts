@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { systemMessage, userMessage, model = 'gpt-4o', maxTokens = 1500 } = body;
+    const { systemMessage, userMessage, model = 'gpt-4o', maxTokens = 300 } = body;
 
     // Validate required fields
     if (!systemMessage || !userMessage) {
