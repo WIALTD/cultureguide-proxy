@@ -70,8 +70,23 @@ export async function POST(request: NextRequest) {
       })
     });
     
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', response.status, errorData);
+      return NextResponse.json({ 
+        error: `OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}` 
+      }, { status: response.status });
+    }
+    
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
+    
+    if (!content) {
+      console.error('No content in OpenAI response:', data);
+      return NextResponse.json({ 
+        error: 'No content received from OpenAI API' 
+      }, { status: 500 });
+    }
     
     return NextResponse.json({ content }, {
       headers: { 
