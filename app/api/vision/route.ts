@@ -5,7 +5,7 @@ export const runtime = "edge";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { imageBase64, systemPrompt } = body;
+    const { imageBase64, systemPrompt, model = 'gpt-5-mini', max_tokens = 2000, temperature = 0.3, hints } = body;
     
     if (!imageBase64) {
       return NextResponse.json({ error: "imageBase64 required" }, { status: 400 });
@@ -17,7 +17,15 @@ export async function POST(request: NextRequest) {
     }
     
     // Use the systemPrompt from the client, or fallback to a basic one
-    const finalSystemPrompt = systemPrompt || "You are an art historian. Identify artwork in the image and respond with JSON only.";
+    let finalSystemPrompt = systemPrompt || "You are an art historian. Identify artwork in the image and respond with JSON only.";
+    
+    // Add hints to the system prompt if provided
+    if (hints?.museum) {
+      finalSystemPrompt += `\n\nMuseum context: This artwork is located at ${hints.museum}.`;
+    }
+    if (hints?.ocrText) {
+      finalSystemPrompt += `\n\nLabel text found: "${hints.ocrText}". Use this information to help identify the artwork.`;
+    }
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -26,7 +34,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model,
         messages: [
           {
             role: "system",
@@ -37,7 +45,8 @@ export async function POST(request: NextRequest) {
             content: [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }]
           }
         ],
-        max_tokens: 2000
+        max_tokens,
+        temperature
       })
     });
     
