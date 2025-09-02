@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
             content: [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }]
           }
         ],
-        max_tokens: 1000
+        max_tokens: 2000
       })
     });
     
